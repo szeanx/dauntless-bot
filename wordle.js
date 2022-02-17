@@ -1,4 +1,4 @@
-const { MessageAttachement } = require("discord.js");
+const Discord = require("discord.js");
 const fs = require("fs");
 var csv = require("jquery-csv");
 const Canvas = require("canvas");
@@ -108,7 +108,10 @@ async function LoadGame(msg, guesses, answer) {
         rowOffset += squareSize + 5;
     }
 
-    const attachment = new MessageAttachement(canvas.toBuffer(), "wordle.png");
+    const attachment = new Discord.MessageAttachment(
+        canvas.toBuffer(),
+        "wordle.png",
+    );
     msg.reply(attachment);
 }
 
@@ -172,8 +175,10 @@ async function Guess(msg, guesses, newGuess, answer) {
         buffer = 0;
         rowOffset += squareSize + 5;
     }
-
-    const attachment = new MessageAttachement(canvas.toBuffer(), "wordle.png");
+    const attachment = new Discord.MessageAttachment(
+        canvas.toBuffer(),
+        "wordle.png",
+    );
     msg.reply(attachment);
 }
 
