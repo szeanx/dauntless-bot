@@ -352,7 +352,17 @@ function PlayWordle(msg) {
                                 data[i][8] = true;
                                 data[i][7]++;
                                 writeToCSVFile(data);
-                                msg.reply("Game over");
+                                msg.channel.send(
+                                    `<@${msg.author.id}>`,
+                                    new Discord.MessageEmbed()
+                                        .setTitle("Game over!")
+                                        .setDescription(
+                                            `You failed to guess the word! The answer was: ${data[i][1]}. Play again tomorrow by using \`d!pw\``,
+                                        )
+                                        .setColor("#ff0000")
+                                        .setFooter("Wordle")
+                                        .setTimestamp(),
+                                );
                             }
                             return;
                         }
@@ -378,7 +388,15 @@ function PlayWordle(msg) {
                     return;
                 }
             }
-            msg.reply("You have not started a game yet today");
+            msg.channel.send(
+                `<@${msg.author.id}>`,
+                new Discord.MessageEmbed()
+                    .setColor("#ff0000")
+                    .setTitle("You have not played today!")
+                    .setDescription("Get a new wordle by using `d!pw`.")
+                    .setFooter("Wordle")
+                    .setTimestamp(),
+            );
         });
     });
 }
