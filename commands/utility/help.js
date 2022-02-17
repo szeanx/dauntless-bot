@@ -29,7 +29,7 @@ module.exports = {
                                 file.description
                             }\n**Aliases:** \`${
                                 file.aliases ? file.aliases.join(", ") : "None"
-                            }\`\n`;
+                            }\``;
                         });
                     let data = new Object();
                     data = {
