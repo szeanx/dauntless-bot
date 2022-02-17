@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const Levels = require("discord-xp");
 const fs = require("fs");
 var csv = require("jquery-csv");
 const Canvas = require("canvas");
@@ -266,7 +267,7 @@ function LoadNewWordle(msg) {
     });
 }
 
-function PlayWordle(msg) {
+async function PlayWordle(msg) {
     fs.readFile("data.csv", "utf-8", (err, fileContent) => {
         if (err) {
             console.log(err);
@@ -372,6 +373,7 @@ function PlayWordle(msg) {
                     data[i][6]++;
                     data[i][7]++;
                     writeToCSVFile(data);
+                    await Levels.appendXp(msg.author.id, msg.guild.id, 100);
                     msg.channel.send(
                         `<@${msg.author.id}>\n`,
                         new Discord.MessageEmbed()
@@ -379,7 +381,7 @@ function PlayWordle(msg) {
                             .setDescription(
                                 `You guessed the word **${data[i][1]}** in ${
                                     guesses.length + 1
-                                } tries!`,
+                                } tries!\nPlay again tomorrow by using \`d!pw\`\nYou have earned 100 XP!`,
                             )
                             .setColor("#00ff00")
                             .setFooter("Wordle")
