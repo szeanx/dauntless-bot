@@ -1,5 +1,6 @@
 const { MessageAttachement } = require("discord.js");
 const fs = require("fs");
+var csv = require("jquery-csv");
 const Canvas = require("canvas");
 
 function GetAnswer() {
@@ -12,6 +13,362 @@ const ValidGuess = (guess) => {
     if (guess.length != 5) return false;
     return true;
 };
+
+const GetTodaysDate = () => {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, "0");
+    var mm = String(today.getMonth() + 1).padStart(2, "0");
+    var yyyy = today.getFullYear();
+    return mm + "/" + dd + "/" + yyyy;
+};
+
+const PlayedToday = (dateData) => {
+    if (GetTodaysDate() == dateData) return true;
+    return false;
+};
+
+const AddSpace = (data) => {
+    if (data.length == 0) return "";
+    return " ";
+};
+
+const GetImage = (guessLetter, answerLetter, i) => {
+    if (guessLetter === undefined) return 0;
+    if (guessLetter.charAt(i) == answerLetter.charAt(i)) return 1;
+    if (answerLetter.includes(guessLetter.charAt(i))) return 2;
+    return 3;
+};
+
+function writeToCSVFile(newData) {
+    const filename = "data.csv";
+    let csvContent =
+        "data:text/csv;charset=utf-8," +
+        newData.map((e) => e.join(",")).join("\n");
+
+    fs.writeFile(filename, csvContent, (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("The file has been saved!");
+        }
+    });
+}
+
+async function LoadGame(msg, guesses, answer) {
+    const canvas = Canvas.createCanvas(330, 397);
+    const ctx = canvas.getContext("2d");
+    const background = await Canvas.loadImage("./images/BlankImage.png");
+    ctx.drawImage(background, 0, 0, canvas.widtth, canvas.height);
+
+    ctx.font = "42px Clear Sans, Helvetica Neue, Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#d7dadc";
+
+    const absentSquare = await Canvas.loadImage("./images/ColorAbsent.png");
+    const emptySquare = await Canvas.loadImage("./images/EmptySquare.png");
+    const greenSquare = await Canvas.loadImage("./images/GreenSquare.png");
+    const yellowSquare = await Canvas.loadImage("./images/YellowSquare.png");
+
+    let square = absentSquare;
+
+    let squareSize = 62;
+    let rowOffset = 0;
+    let buffer = 0;
+
+    for (let j = 0; j < 6; j++) {
+        for (let i = 0; i < 5; i++) {
+            const imageNumber = GetImage(guesses[j], answer, i);
+            if (imageNumber == 1) {
+                square = greenSquare;
+            } else if (imageNumber == 2) {
+                square = yellowSquare;
+            } else if (imageNumber == 3) {
+                square = absentSquare;
+            } else if (imageNumber == 0) {
+                square = emptySquare;
+            }
+            ctx.drawImage(
+                square,
+                i * squareSize + buffer,
+                rowOffset,
+                squareSize,
+                squareSize,
+            );
+            if (guesses[j] != undefined) {
+                ctx.fillText(
+                    guesses[j].charAt(i),
+                    i * squareSize + buffer + squareSize / 2,
+                    rowOffset + 42,
+                );
+            }
+
+            buffer += 5;
+        }
+        buffer = 0;
+        rowOffset += squareSize + 5;
+    }
+
+    const attachment = new MessageAttachement(canvas.toBuffer(), "wordle.png");
+    msg.reply(attachment);
+}
+
+async function Guess(msg, guesses, newGuess, answer) {
+    const canvas = Canvas.createCanvas(330, 397);
+    const ctx = canvas.getContext("2d");
+
+    const background = await Canvas.loadImage("./images/BlankImage.png");
+    ctx.drawImage(background, 0, 0, canvas.widtth, canvas.height);
+
+    ctx.font = "42px Clear Sans, Helvetica Neue, Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#d7dadc";
+
+    const absentSquare = await Canvas.loadImage("./images/ColorAbsent.png");
+    const emptySquare = await Canvas.loadImage("./images/EmptySquare.png");
+    const greenSquare = await Canvas.loadImage("./images/GreenSquare.png");
+    const yellowSquare = await Canvas.loadImage("./images/YellowSquare.png");
+
+    let square = absentSquare;
+    let squareSize = 62;
+    let rowOffset = 0;
+    let buffer = 0;
+
+    if (guesses == "") {
+        guesses[0] = newGuess;
+    } else {
+        guesses.push(newGuess);
+    }
+
+    for (let j = 0; j < 6; j++) {
+        for (let i = 0; i < 5; i++) {
+            const imageNumber = GetImage(guesses[j], answer, i);
+            if (imageNumber == 1) {
+                square = greenSquare;
+            } else if (imageNumber == 2) {
+                square = yellowSquare;
+            } else if (imageNumber == 3) {
+                square = absentSquare;
+            } else if (imageNumber == 0) {
+                square = emptySquare;
+            }
+            ctx.drawImage(
+                square,
+                i * squareSize + buffer,
+                rowOffset,
+                squareSize,
+                squareSize,
+            );
+            if (guesses[j] != undefined) {
+                ctx.fillText(
+                    guesses[j].charAt(i),
+                    i * squareSize + buffer + squareSize / 2,
+                    rowOffset + 42,
+                );
+            }
+
+            buffer += 5;
+        }
+
+        buffer = 0;
+        rowOffset += squareSize + 5;
+    }
+
+    const attachment = new MessageAttachement(canvas.toBuffer(), "wordle.png");
+    msg.reply(attachment);
+}
+
+function LoadNewWordle(msg) {
+    fs.readFile("data.csv", "utf-8", (err, fileContent) => {
+        if (err) {
+            console.log(err);
+        }
+        csv.toArrays(fileContent, {}, (err, data) => {
+            if (err) console.log(err);
+            if (data.length == 0) {
+                data[0] = [
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "user",
+                    "wordOfTheDay",
+                    "canGuess",
+                    "lastGuessDate",
+                    "guesses",
+                    "wins",
+                    "games",
+                    "hasCompletedToday",
+                ];
+            }
+            for (let i = 1, len = data.length; i < len; i++) {
+                if (data[i][0] == msg.author.id) {
+                    if (PlayedToday(data[i][3])) {
+                        msg.reply("You have already completed a wordle today!");
+                        return;
+                    }
+
+                    data[i][1] = GetAnswer();
+                    data[i][3] = GetTodaysDate();
+                    data[i][4] = "";
+                    data[i][8] = false;
+
+                    writeToCSVFile(data);
+                    LoadGame(msg, data[i][4], data[i][1]);
+                    return;
+                }
+            }
+
+            data.push([
+                msg.author.id,
+                GetAnswer(),
+                "false",
+                GetTodaysDate(),
+                "",
+                0,
+                0,
+                0,
+                false,
+            ]);
+            writeToCSVFile(data);
+            LoadGame(msg, "", "");
+        });
+    });
+}
+
+function PlayWordle(msg) {
+    fs.readFile("data.csv", "UTF-8", (err, fileContent) => {
+        if (err) {
+            console.log(err);
+        }
+        csv.toArrays(fileContent, {}, (err, data) => {
+            if (err) {
+                console.log(err);
+            }
+            if (data.length == 0) {
+                data[0] = [
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "data:text/csv;charset=utf-8",
+                    "user",
+                    "wordOfTheDay",
+                    "canGuess",
+                    "lastGuessDate",
+                    "guesses",
+                    "wins",
+                    "games",
+                    "hasCompletedToday",
+                ];
+            }
+            for (let i = 1, len = data.length; i < len; i++) {
+                if (data[i][0] == msg.author.id) {
+                    if (data[i][8] == "true") {
+                        msg.reply(
+                            "You have already completed a game today, Come back tomorrow",
+                        );
+                        return;
+                    }
+
+                    var guess = msg.content.split(" ")[1];
+
+                    //Guess checks
+                    if (!ValidGuess(guess)) {
+                        msg.reply("Guesses must be a valid 5 letter word ");
+                        return;
+                    }
+
+                    //clean data and update file
+                    var guesses = data[i][4].split(" ");
+                    guess = guess.toUpperCase();
+                    data[i][4] = data[i][4] + AddSpace(data[i][4]) + guess;
+                    writeToCSVFile(data);
+
+                    Guess(msg, guesses, guess, data[i][1]);
+
+                    //check to see if guess and answer match
+                    for (var c = 0; c < guess.length; c++) {
+                        if (guess.charCodeAt(c) != data[i][1].charCodeAt(c)) {
+                            if (guesses.length === 5) {
+                                data[i][8] = true;
+                                data[i][7] += 1;
+                                writeToCSVFile(data);
+                                msg.reply("Game over");
+                            }
+                            return;
+                        }
+                    }
+
+                    data[i][8] = true;
+                    data[i][6] += 1;
+                    data[i][7] += 1;
+                    writeToCSVFile(data);
+                    msg.reply(
+                        "Congradulations! You guessed the word " +
+                            data[i][1] +
+                            " in " +
+                            (guesses.length + 1) +
+                            " tries!",
+                    );
+
+                    return;
+                }
+            }
+            msg.reply("You have not started a game yet today");
+        });
+    });
+}
+
+function ShowWordleStats(msg) {
+    fs.readFile("data.csv", "UTF-8", (err, fileContent) => {
+        if (err) {
+            console.log(err);
+        }
+        csv.toArrays(fileContent, {}, (err, data) => {
+            if (err) {
+                console.log(err);
+            }
+            for (let i = 1, len = data.length; i < len; i++) {
+                if (data[i][0] == msg.author.id) {
+                    var wins = data[i][6];
+                    var games = data[i][7];
+                    var result = Math.round((wins / games) * 100);
+
+                    msg.reply(
+                        "Stats: \nPlayed : " + games + "\nWin % : " + result,
+                    );
+
+                    return;
+                }
+            }
+
+            data[data.length] = [msg.author.id, "", "false", "", "", "0", "0"];
+            msg.reply("Stats: \nPlayed : " + 0 + "\nWin % : " + 0);
+            writeToCSVFile(data);
+        });
+    });
+}
+
+module.exports = { LoadNewWordle, PlayWordle, ShowWordleStats };
 
 answers = [
     "ABUSE",
