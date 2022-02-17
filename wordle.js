@@ -23,7 +23,7 @@ const GetTodaysDate = () => {
 };
 
 const PlayedToday = (dateData) => {
-    if (GetTodaysDate() == dateData) return true;
+    // if (GetTodaysDate() == dateData) return true;
     return false;
 };
 
@@ -218,7 +218,7 @@ function LoadNewWordle(msg) {
             for (let i = 1, len = data.length; i < len; i++) {
                 if (data[i][0] == msg.author.id) {
                     if (PlayedToday(data[i][3])) {
-                        msg.reply("You have already completed a wordle today!");
+                        msg.reply("you have already completed a wordle today!");
                         return;
                     }
 
@@ -288,9 +288,7 @@ function PlayWordle(msg) {
             for (let i = 1, len = data.length; i < len; i++) {
                 if (data[i][0] == msg.author.id) {
                     if (data[i][8] == "true") {
-                        msg.reply(
-                            "You have already completed a game today, Come back tomorrow",
-                        );
+                        msg.reply("you have already completed a wordle today!");
                         return;
                     }
 
@@ -298,7 +296,17 @@ function PlayWordle(msg) {
 
                     //Guess checks
                     if (!ValidGuess(guess)) {
-                        msg.reply("Guesses must be a valid 5 letter word ");
+                        msg.channel.send(
+                            `<@${msg.author.id}>\n` +
+                                new Discord.MessageEmbed()
+                                    .setTitle("Invalid Guess")
+                                    .setDescription(
+                                        "Please enter a valid guess.\n\nGuesses must be 5 characters long and contain only the following characters: a-z, A-Z, 0-9, and _",
+                                    )
+                                    .setColor("#ff0000")
+                                    .setFooter("Wordle")
+                                    .setTimestamp(),
+                        );
                         return;
                     }
 
@@ -327,8 +335,21 @@ function PlayWordle(msg) {
                     data[i][6] += 1;
                     data[i][7] += 1;
                     writeToCSVFile(data);
+                    msg.channel.send(
+                        `<@${msg.author.id}>\n` +
+                            new Discord.MessageEmbed()
+                                .setTitle("Congratulations!")
+                                .setDescription(
+                                    `You guessed the word ${data[i][1]} in ${
+                                        guesses.length + 1
+                                    } tries!`,
+                                )
+                                .setColor("#00ff00")
+                                .setFooter("Wordle")
+                                .setTimestamp(),
+                    );
                     msg.reply(
-                        "Congradulations! You guessed the word " +
+                        "congradulations! You guessed the word " +
                             data[i][1] +
                             " in " +
                             (guesses.length + 1) +
@@ -358,16 +379,52 @@ function ShowWordleStats(msg) {
                     var games = data[i][7];
                     var result = Math.round((wins / games) * 100);
 
-                    msg.reply(
-                        "Stats: \nPlayed : " + games + "\nWin % : " + result,
+                    msg.channel.send(
+                        `<@${msg.author.id}>\n` +
+                            new Discord.MessageEmbed()
+                                .setTitle("Wordle Stats")
+                                .setAuthor(
+                                    msg.author.username,
+                                    message.author.avatarURL(),
+                                )
+                                .addField("Wins 👍🏻", wins)
+                                .addField("Games 🎮", games)
+                                .addField("Win rate 🎯", result + "%")
+                                .setColor(
+                                    "#" +
+                                        Math.floor(
+                                            Math.random() * 16777215,
+                                        ).toString(16),
+                                )
+                                .setFooter("Wordle")
+                                .setTimestamp(),
                     );
-
                     return;
                 }
             }
 
             data[data.length] = [msg.author.id, "", "false", "", "", "0", "0"];
-            msg.reply("Stats: \nPlayed : " + 0 + "\nWin % : " + 0);
+
+            msg.channel.send(
+                `<@${msg.author.id}>\n` +
+                    new Discord.MessageEmbed()
+                        .setTitle("Wordle Stats")
+                        .setAuthor(
+                            msg.author.username,
+                            message.author.avatarURL(),
+                        )
+                        .addField("Wins 👍🏻", wins)
+                        .addField("Games 🎮", games)
+                        .addField("Win rate 🎯", result + "%")
+                        .setColor(
+                            "#" +
+                                Math.floor(Math.random() * 16777215).toString(
+                                    16,
+                                ),
+                        )
+                        .setFooter("Wordle")
+                        .setTimestamp(),
+            );
             writeToCSVFile(data);
         });
     });
