@@ -95,15 +95,6 @@ client.on("message", async function (message) {
     }
 });
 
-client.player = new Player(client, {
-    leaveOnEnd: true,
-    leaveOnEmpty: true,
-    leaveOnStop: true,
-    leaveOnEmptyCooldown: 60000,
-    autoSelfDeaf: true,
-    initialVolume: 100,
-});
-
 client.login(process.env.TOKEN);
 
 (async () => {
