@@ -1,5 +1,6 @@
 const Discord = require("discord.js");
 const Levels = require("discord-xp");
+const Player = require("discord-player");
 const client = new Discord.Client();
 require("dotenv").config();
 const fs = require("fs");
@@ -92,6 +93,15 @@ client.on("message", async function (message) {
                 .setDescription(`You leveled up to level ${user.level}!`),
         );
     }
+});
+
+client.player = new Player(client, {
+    leaveOnEnd: true,
+    leaveOnEmpty: true,
+    leaveOnStop: true,
+    leaveOnEmptyCooldown: 60000,
+    autoSelfDeaf: true,
+    initialVolume: 100,
 });
 
 client.login(process.env.TOKEN);
