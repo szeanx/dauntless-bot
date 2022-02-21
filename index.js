@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const Levels = require("discord-xp");
-const Player = require("discord-player");
 const client = new Discord.Client();
+const profileModel = require("./models/profileSchema");
 require("dotenv").config();
 const fs = require("fs");
 
@@ -37,6 +37,23 @@ const prefix = "d!";
 
 client.on("message", async function (message) {
     if (message.author.bot || !message.content.startsWith(prefix)) return;
+
+    // schema creation
+    let profileData;
+    try {
+        profileData = await profileModel.findOne({ userID: message.author.id });
+        if (!profileData) {
+            let profile = await profileModel.create({
+                userID: message.author.id,
+                guildID: message.guild.id,
+                coins: 0,
+                bank: 0,
+            });
+            profile.save();
+        }
+    } catch (err) {
+        console.log(err);
+    }
 
     const commandBody = message.content.slice(prefix.length);
     const args = commandBody.split(" ");
