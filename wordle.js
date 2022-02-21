@@ -267,7 +267,7 @@ function LoadNewWordle(msg) {
     });
 }
 
-async function PlayWordle(msg) {
+function PlayWordle(msg) {
     fs.readFile("data.csv", "utf-8", (err, fileContent) => {
         if (err) {
             console.log(err);
@@ -373,7 +373,7 @@ async function PlayWordle(msg) {
                     data[i][6]++;
                     data[i][7]++;
                     writeToCSVFile(data);
-                    await Levels.appendXp(msg.author.id, msg.guild.id, 100);
+                    Levels.appendXp(msg.author.id, msg.guild.id, 100);
                     msg.channel.send(
                         `<@${msg.author.id}>\n`,
                         new Discord.MessageEmbed()
