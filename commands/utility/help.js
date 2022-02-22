@@ -25,11 +25,9 @@ module.exports = {
                             let file = require(`../../commands/${dir}/${command}`);
                             if (!file.name) return "No command name. ";
                             let name = file.name.replace(".js", "");
-                            return `\`${name}\` - ${
-                                file.description
-                            }\n**Aliases:** \`${
-                                file.aliases ? file.aliases.join(", ") : "None"
-                            }\``;
+                            return `\`${name}\` \`${
+                                file.aliases ? file.aliases.join(", ") : ""
+                            }\` - ${file.description}`;
                         });
                     let data = new Object();
                     data = {
