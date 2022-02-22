@@ -28,9 +28,8 @@ module.exports = {
         let messageArgs = args.join(" ");
         channel
             .send(
-                `<@${message.author.id}>`,
                 new Discord.MessageEmbed()
-                    .setDescription(messageArgs)
+                    .setDescription(`**Prayer Pointer:** ${messageArgs}`)
                     .setAuthor(
                         message.author.username,
                         message.author.avatarURL(),
