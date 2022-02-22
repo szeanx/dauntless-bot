@@ -39,7 +39,7 @@ client.on("message", async function (message) {
     if (message.author.bot || !message.content.startsWith(prefix)) return;
 
     // schema creation
-    let profileData;
+    var profileData;
     try {
         profileData = await profileModel.findOne({ userID: message.author.id });
         if (!profileData) {
