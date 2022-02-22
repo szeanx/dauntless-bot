@@ -30,8 +30,7 @@ module.exports = {
             .send(
                 `<@${message.author.id}>`,
                 new Discord.MessageEmbed()
-                    .setTitle("🔥Prayer Pointer")
-                    .addField(messageArgs)
+                    .setDescription(messageArgs)
                     .setAuthor(
                         message.author.username,
                         message.author.avatarURL(),
