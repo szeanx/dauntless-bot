@@ -27,7 +27,21 @@ module.exports = {
 
         let messageArgs = args.join(" ");
         channel
-            .send(`${message.author} added a prayer pointer: ${messageArgs}`)
+            .send(
+                `<@${message.author.id}>`,
+                new Discord.MessageEmbed()
+                    .setTitle("🔥Prayer Pointer")
+                    .addField(messageArgs)
+                    .setAuthor(
+                        message.author.username,
+                        message.author.avatarURL(),
+                    )
+                    .setColor(
+                        "#" + Math.floor(Math.random() * 16777215).toString(16),
+                    )
+                    .setFooter("Prayer")
+                    .setTimestamp(),
+            )
             .then((msg) => {
                 msg.react("✅");
                 msg.react("❌");
