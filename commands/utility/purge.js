@@ -7,17 +7,19 @@ module.exports = {
             return message.channel.send("You don't have permission to do that");
         if (!args[0])
             return message.channel.send(
-                "Please provide a number of messages to delete!",
+                "**Please provide a number of messages to delete!**",
             );
         if (args[0] > 100)
             return message.channel.send(
-                "Please provide a number less than 100!",
+                "**Please provide a number less than 100!**",
             );
         message.channel
             .bulkDelete(args[0])
             .then(() => {
                 message.channel.send(
-                    `Successfully deleted ${args[0]} messages`,
+                    `**Successfully deleted ${args[0]} ${
+                        "message" + (args[0] > 1 ? "s" : "")
+                    }!**`,
                 );
             })
             .catch((err) => {

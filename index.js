@@ -21,6 +21,7 @@ const functions = fs
     .readdirSync("./functions/")
     .filter((file) => file.endsWith(".js"));
 
+
 client.on("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
     client.user.setPresence({
@@ -37,7 +38,6 @@ const prefix = "d!";
 
 client.on("message", async function (message) {
     if (message.author.bot || !message.content.startsWith(prefix)) return;
-
     // schema creation
     var profileData;
     try {
